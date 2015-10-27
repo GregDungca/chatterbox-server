@@ -5,7 +5,7 @@ var requestHandler = function(request, response) {
 
   console.log("Serving request type " + request.method + " for url " + request.url);
 
-
+  
 
 
   if ( request.method === 'POST') {
@@ -32,7 +32,7 @@ var requestHandler = function(request, response) {
 
       writeStream.write(slicedParsedAllData + ',' + JSON.stringify(receivedMessage) + "]}");
 
-      var statusCode = 201;
+      var statusCode = 200;
 
       var headers = defaultCorsHeaders;
 
@@ -55,7 +55,7 @@ var requestHandler = function(request, response) {
     });
 
     messages.on('end', function() {
-      var statusCode = 201;
+      var statusCode = 200;
 
       var headers = defaultCorsHeaders;
       
