@@ -4,9 +4,6 @@ var url = require('url');
 var requestHandler = function(request, response) {
 
   console.log("Serving request type " + request.method + " for url " + request.url);
-  console.log(url.parse(request.url).pathname);
-
-  
 
 
 // paths
@@ -21,13 +18,10 @@ var paths = [
   '/classes/messages'
 ];
 
+var sendResponse = function() {
 
+}
 
-
-// if pathname exists within paths 
-  // continue
-// else
-  // respond with 404 NOT FOUND 
 
 if ( paths.indexOf(url.parse(request.url).pathname) !== -1 ) {
 
@@ -55,13 +49,21 @@ if ( paths.indexOf(url.parse(request.url).pathname) !== -1 ) {
 
       writeStream.write(slicedParsedAllData + ',' + JSON.stringify(receivedMessage) + "]}");
 
-      var statusCode = 201;
+      writeStream.end();
 
-      var headers = defaultCorsHeaders;
+      writeStream.on('finish', function () {
+        //console.log('>>> Write stream is finished!');
+        var statusCode = 201;
 
-      response.writeHead(statusCode, headers);
+        var headers = defaultCorsHeaders;
 
-      response.end();
+        response.writeHead(statusCode, headers);
+
+        response.end('{"objectID":0}');
+
+      })
+
+
     });
 
 
@@ -83,11 +85,10 @@ if ( paths.indexOf(url.parse(request.url).pathname) !== -1 ) {
       var headers = defaultCorsHeaders;
       
 
-      headers['Content-Type'] = "text/plain";//may have to make this application/json
+      headers['Content-Type'] = "application/json";//may have to make this application/json
 
       // .writeHead() writes to the request line and headers of the response,
       // which includes the status and all headers.
-      console.log(statusCode);
       response.writeHead(statusCode, headers);
     
       // Make sure to always call response.end() - Node may not send
@@ -106,7 +107,7 @@ if ( paths.indexOf(url.parse(request.url).pathname) !== -1 ) {
 
     var statusCode = 200;
     var headers = defaultCorsHeaders;
-    headers['Content-Type'] = "text/plain";
+    headers['Content-Type'] = "application/json";
     response.writeHead(statusCode, headers);
     response.end(messageData);
 
@@ -119,7 +120,7 @@ if ( paths.indexOf(url.parse(request.url).pathname) !== -1 ) {
 else {
   var statusCode = 404;
   var headers = defaultCorsHeaders;
-  headers['Content-Type'] = "text/plain";
+  headers['Content-Type'] = "application/json";
   response.writeHead(statusCode, headers);
   response.end(messageData);
 
