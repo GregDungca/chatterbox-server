@@ -4,68 +4,77 @@ var fs = require('fs');
 var requestHandler = function(request, response) {
 
   console.log("Serving request type " + request.method + " for url " + request.url);
-  // console.log(request.url);
-  // console.log(request.headers);
 
 
-
-  var messages = fs.createReadStream('messages.json');
-
-
-  messages.setEncoding('utf8');
-
-  var messageData = '';
-  messages.on('data', function(chunk) {
-    messageData += chunk;
-  });
-
-  messages.on('end', function() {
-    var statusCode = 200;
-
-    // See the note below about CORS headers.
-    var headers = defaultCorsHeaders;
+  if ( request.method === 'POST') {
+    console.log('received a POST message');
+    var receivedMessage;
+    request.setEncoding('utf8');
+    request.on('data', function(chunk) {
+      receivedMessage = JSON.parse(chunk);
+    });
+    var readMessages = fs.createReadStream('messages.json');
+    readMessages.setEncoding('utf8');
+    var allData;
+    readMessages.on('data', function(chunk) {
+      allData = JSON.parse(chunk);
+    });
     
 
-    headers['Content-Type'] = "text/plain";//may have to make this application/json
+    readMessages.on('end', function() {
+      var parsedAllData = JSON.stringify(allData);
 
-    // .writeHead() writes to the request line and headers of the response,
-    // which includes the status and all headers.
-    response.writeHead(statusCode, headers);
-  
-    // Make sure to always call response.end() - Node may not send
-    // anything back to the client until you do. The string you pass to
-    // response.end() will be the body of the response - i.e. what shows
-    // up in the browser.
-    //
-    // Calling .end "flushes" the response's internal buffer, forcing
-    // node to actually send all the data over to the client.
-    response.end(messageData);
-  });
+      var slicedParsedAllData = parsedAllData.slice(0, parsedAllData.length-2);
+
+      var writeStream = fs.createWriteStream('messages.json');
+
+      writeStream.write(slicedParsedAllData + ',' + JSON.stringify(receivedMessage) + "]}");
+
+      var statusCode = 200;
+
+      var headers = defaultCorsHeaders;
+
+      response.writeHead(statusCode, headers);
+
+      response.end();
+    });
 
 
+  }
 
+  else {
+    var messages = fs.createReadStream('messages.json');
 
-  // var statusCode = 200;
+    messages.setEncoding('utf8');
 
-  // // See the note below about CORS headers.
-  // var headers = defaultCorsHeaders;
-  
+    var messageData = '';
+    messages.on('data', function(chunk) {
+      messageData += chunk;
+    });
 
-  // headers['Content-Type'] = "text/plain";
+    messages.on('end', function() {
+      var statusCode = 200;
 
-  // // .writeHead() writes to the request line and headers of the response,
-  // // which includes the status and all headers.
-  // response.writeHead(statusCode, headers);
-  // response.write(messageData);
+      // See the note below about CORS headers.
+      var headers = defaultCorsHeaders;
+      
 
-  // // Make sure to always call response.end() - Node may not send
-  // // anything back to the client until you do. The string you pass to
-  // // response.end() will be the body of the response - i.e. what shows
-  // // up in the browser.
-  // //
-  // // Calling .end "flushes" the response's internal buffer, forcing
-  // // node to actually send all the data over to the client.
-  // response.end("Hello, World!");
+      headers['Content-Type'] = "text/plain";//may have to make this application/json
+
+      // .writeHead() writes to the request line and headers of the response,
+      // which includes the status and all headers.
+      response.writeHead(statusCode, headers);
+    
+      // Make sure to always call response.end() - Node may not send
+      // anything back to the client until you do. The string you pass to
+      // response.end() will be the body of the response - i.e. what shows
+      // up in the browser.
+      //
+      // Calling .end "flushes" the response's internal buffer, forcing
+      // node to actually send all the data over to the client.
+      response.end(messageData);
+    });
+  }
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).

@@ -1,1 +1,1 @@
-'[{"username":"Greg","text":"Whattup","roomname":"myRoom"},{"username":"Hannaha","text":"Hi!","roomname":"myRoom"}]'
+{"results":[{"username":"Greg","text":"Whattup","roomname":"myRoom"},{"username":"Hannaha","text":"Hi!","roomname":"myRoom"},{"username":"","text":"ggg","roomname":"lobby"},{"username":"","text":"ggg","roomname":"lobby"},{"username":"","text":"gasdg","roomname":"lobby"},{"username":"","text":"asdgasdg","roomname":"lobby"},{"username":"Jono","message":"Do my bidding!"},{"username":"Jono","message":"Do my bidding!"}]}
