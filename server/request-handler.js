@@ -1,3 +1,11 @@
+var headers = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "access-control-allow-headers": "content-type, accept",
+  "access-control-max-age": 10,
+  "Content-Type": "application/json"
+};
+
 var fs = require('fs');
 var url = require('url');
 
@@ -5,135 +13,72 @@ var requestHandler = function(request, response) {
 
   console.log("Serving request type " + request.method + " for url " + request.url);
 
+  var paths = [
+    '/classes/chatterbox',
+    '/classes/room1',
+    '/classes/room',
+    '/log',
+    '/classes/messages'
+  ];
 
-// paths
-  // /classes/chatterbox
-  // /classes/room1
-  // /classes/room
-var paths = [
-  '/classes/chatterbox',
-  '/classes/room1',
-  '/classes/room',
-  '/log',
-  '/classes/messages'
-];
-
-var sendResponse = function() {
-
-}
-
-
-if ( paths.indexOf(url.parse(request.url).pathname) !== -1 ) {
-
-  if ( request.method === 'POST') {
-    console.log('received a POST message');
-    var receivedMessage;
-    request.setEncoding('utf8');
-    request.on('data', function(chunk) {
-      receivedMessage = JSON.parse(chunk);
-    });
-    var readMessages = fs.createReadStream('/Users/student/2015-10-chatterbox-server/server/messages.json');
-    readMessages.setEncoding('utf8');
-    var allData;
-    readMessages.on('data', function(chunk) {
-      allData = JSON.parse(chunk);
-    });
-    
-
-    readMessages.on('end', function() {
-      var parsedAllData = JSON.stringify(allData);
-
-      var slicedParsedAllData = parsedAllData.slice(0, parsedAllData.length-2);
-
-      var writeStream = fs.createWriteStream('/Users/student/2015-10-chatterbox-server/server/messages.json');
-
-      writeStream.write(slicedParsedAllData + ',' + JSON.stringify(receivedMessage) + "]}");
-
-      writeStream.end();
-
-      writeStream.on('finish', function () {
-        //console.log('>>> Write stream is finished!');
-        var statusCode = 201;
-
-        var headers = defaultCorsHeaders;
-
-        response.writeHead(statusCode, headers);
-
-        response.end('{"objectID":0}');
-
-      })
-
-
-    });
-
-
+  var sendResponse = function( response, data, statusCode ) {
+    response.writeHead(statusCode, headers);
+    response.end(data);
   }
 
-  else if ( request.method === 'GET' ) {
-    var messages = fs.createReadStream('/Users/student/2015-10-chatterbox-server/server/messages.json');
 
-    messages.setEncoding('utf8');
+  if ( paths.indexOf(url.parse(request.url).pathname) !== -1 ) {
 
-    var messageData = '';
-    messages.on('data', function(chunk) {
-      messageData += chunk;
-    });
+    if ( request.method === 'POST') {
+      console.log('received a POST message');
+      var receivedMessage = '';
+      request.setEncoding('utf8');
 
-    messages.on('end', function() {
-      var statusCode = 200;
-
-      var headers = defaultCorsHeaders;
+      request.on('data', function(chunk) {
+        receivedMessage += chunk;
+      });
+      var readMessages = fs.createReadStream('/Users/student/2015-10-chatterbox-server/server/messages.json');
+      readMessages.setEncoding('utf8');
+      var allData = '';
+      readMessages.on('data', function(chunk) {
+        allData += chunk;
+      });
       
 
-      headers['Content-Type'] = "application/json";//may have to make this application/json
+      readMessages.on('end', function() {
+        var writeStream = fs.createWriteStream('/Users/student/2015-10-chatterbox-server/server/messages.json');
+        writeStream.end(allData.slice(0, allData.length-2) + ',' + receivedMessage + "]}");
+        writeStream.on('finish', function () {
+          sendResponse(response, '{"objectID":0}', 201)
+        });
+      });
 
-      // .writeHead() writes to the request line and headers of the response,
-      // which includes the status and all headers.
-      response.writeHead(statusCode, headers);
+    }
+
+    else if ( request.method === 'GET' ) {
+      var messages = fs.createReadStream('/Users/student/2015-10-chatterbox-server/server/messages.json');
+
+      messages.setEncoding('utf8');
+
+      var messageData = '';
+      messages.on('data', function(chunk) {
+        messageData += chunk;
+      });
+
+      messages.on('end', function() {
+        sendResponse(response, messageData, 200);
+      });
+    }
+
+    else if ( request.method === 'OPTIONS' ) {
+      sendResponse(response, '', 200);
+    }
     
-      // Make sure to always call response.end() - Node may not send
-      // anything back to the client until you do. The string you pass to
-      // response.end() will be the body of the response - i.e. what shows
-      // up in the browser.
-      //
-      // Calling .end "flushes" the response's internal buffer, forcing
-      // node to actually send all the data over to the client.
-
-      response.end(messageData);
-    });
   }
 
-  else if ( request.method === 'OPTIONS' ) {
-
-    var statusCode = 200;
-    var headers = defaultCorsHeaders;
-    headers['Content-Type'] = "application/json";
-    response.writeHead(statusCode, headers);
-    response.end(messageData);
-
+  else {
+    sendResponse(response, '', 404);
   }
-
-
-  
-}
-
-else {
-  var statusCode = 404;
-  var headers = defaultCorsHeaders;
-  headers['Content-Type'] = "application/json";
-  response.writeHead(statusCode, headers);
-  response.end(messageData);
-
-
-}
-
-
-
-
-
-
-// need to have another if statement which checks for the OPTIONS and returns a 200
-
 
 
 
@@ -148,12 +93,7 @@ else {
 //
 // Another way to get around this restriction is to serve you chat
 // client from this domain by setting up static file serving.
-var defaultCorsHeaders = {
-  "access-control-allow-origin": "*",
-  "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "access-control-allow-headers": "content-type, accept",
-  "access-control-max-age": 10 // Seconds.
-};
+
 
 
 exports.requestHandler = requestHandler;
