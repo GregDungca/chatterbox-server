@@ -1,12 +1,35 @@
 var fs = require('fs');
-
+var url = require('url');
 
 var requestHandler = function(request, response) {
 
   console.log("Serving request type " + request.method + " for url " + request.url);
+  console.log(url.parse(request.url).pathname);
 
   
 
+
+// paths
+  // /classes/chatterbox
+  // /classes/room1
+  // /classes/room
+var paths = [
+  '/classes/chatterbox',
+  '/classes/room1',
+  '/classes/room',
+  '/log',
+  '/classes/messages'
+];
+
+
+
+
+// if pathname exists within paths 
+  // continue
+// else
+  // respond with 404 NOT FOUND 
+
+if ( paths.indexOf(url.parse(request.url).pathname) !== -1 ) {
 
   if ( request.method === 'POST') {
     console.log('received a POST message');
@@ -15,7 +38,7 @@ var requestHandler = function(request, response) {
     request.on('data', function(chunk) {
       receivedMessage = JSON.parse(chunk);
     });
-    var readMessages = fs.createReadStream('messages.json');
+    var readMessages = fs.createReadStream('/Users/student/2015-10-chatterbox-server/server/messages.json');
     readMessages.setEncoding('utf8');
     var allData;
     readMessages.on('data', function(chunk) {
@@ -28,11 +51,11 @@ var requestHandler = function(request, response) {
 
       var slicedParsedAllData = parsedAllData.slice(0, parsedAllData.length-2);
 
-      var writeStream = fs.createWriteStream('messages.json');
+      var writeStream = fs.createWriteStream('/Users/student/2015-10-chatterbox-server/server/messages.json');
 
       writeStream.write(slicedParsedAllData + ',' + JSON.stringify(receivedMessage) + "]}");
 
-      var statusCode = 200;
+      var statusCode = 201;
 
       var headers = defaultCorsHeaders;
 
@@ -44,8 +67,8 @@ var requestHandler = function(request, response) {
 
   }
 
-  else {
-    var messages = fs.createReadStream('messages.json');
+  else if ( request.method === 'GET' ) {
+    var messages = fs.createReadStream('/Users/student/2015-10-chatterbox-server/server/messages.json');
 
     messages.setEncoding('utf8');
 
@@ -64,6 +87,7 @@ var requestHandler = function(request, response) {
 
       // .writeHead() writes to the request line and headers of the response,
       // which includes the status and all headers.
+      console.log(statusCode);
       response.writeHead(statusCode, headers);
     
       // Make sure to always call response.end() - Node may not send
@@ -73,9 +97,45 @@ var requestHandler = function(request, response) {
       //
       // Calling .end "flushes" the response's internal buffer, forcing
       // node to actually send all the data over to the client.
+
       response.end(messageData);
     });
   }
+
+  else if ( request.method === 'OPTIONS' ) {
+
+    var statusCode = 200;
+    var headers = defaultCorsHeaders;
+    headers['Content-Type'] = "text/plain";
+    response.writeHead(statusCode, headers);
+    response.end(messageData);
+
+  }
+
+
+  
+}
+
+else {
+  var statusCode = 404;
+  var headers = defaultCorsHeaders;
+  headers['Content-Type'] = "text/plain";
+  response.writeHead(statusCode, headers);
+  response.end(messageData);
+
+
+}
+
+
+
+
+
+
+// need to have another if statement which checks for the OPTIONS and returns a 200
+
+
+
+
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
@@ -95,4 +155,4 @@ var defaultCorsHeaders = {
 };
 
 
-exports.handleRequest = requestHandler;
+exports.requestHandler = requestHandler;

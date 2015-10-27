@@ -4,7 +4,7 @@ var app = {
   //TODO: The current 'addFriend' function just adds the class 'friend'
   //to all messages sent by the user
   //server: 'https://api.parse.com/1/classes/chatterbox/',
-  server: 'http://127.0.0.1:3000/',
+  server: 'http://127.0.0.1:3000/classes/chatterbox',
   username: 'anonymous',
   roomname: 'lobby',
   lastMessageId: 0,
