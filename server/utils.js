@@ -28,7 +28,6 @@ var getData = function(request, callback) {
     data += chunk;
   });
   request.on('end', function() {
-    console.log(data);
     callback(data);
   })
 }

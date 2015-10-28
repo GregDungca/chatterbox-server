@@ -33,17 +33,17 @@ var requestHandler = function(request, response) {
       });
       messagesStream.on('end', function() {
 
-        // add objectID to message
+        // add objectId to message
         var newID = JSON.parse(allData).results.length;
         var jsonReceivedMessage = JSON.parse(receivedMessage);
-        jsonReceivedMessage.objectID = newID;
+        jsonReceivedMessage.objectId = newID;
 
         // write messages to messages.json
 
         var writeStream = fs.createWriteStream('/Users/student/2015-10-chatterbox-server/server/messages.json');
         writeStream.end(allData.slice(0, allData.length-2) + ',' + JSON.stringify(jsonReceivedMessage) + "]}");
         writeStream.on('finish', function () {
-          utils.sendResponse(response, '', 201);
+          utils.sendResponse(response, '{"success":1}', 201);
         });
       });
     });
