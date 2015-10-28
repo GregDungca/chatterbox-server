@@ -21,5 +21,18 @@ var sendResponse = function( response, data, statusCode ) {
   response.end(data);
 }
 
+var getData = function(request, callback) {
+  var data = '';
+  request.setEncoding('utf8');
+  request.on('data', function(chunk) {
+    data += chunk;
+  });
+  request.on('end', function() {
+    console.log(data);
+    callback(data);
+  })
+}
+
 exports.sendResponse = sendResponse;
 exports.headers = headers;
+exports.getData = getData;

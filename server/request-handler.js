@@ -19,33 +19,38 @@ var requestHandler = function(request, response) {
   }
 
   var postHandler = function () {
-    console.log('received a POST message');
-    var receivedMessage = '';
-    request.setEncoding('utf8');
+    utils.getData(request, function (receivedMessage) {
 
-    request.on('data', function(chunk) {
-      receivedMessage += chunk;
-    });
-    var readMessages = fs.createReadStream('/Users/student/2015-10-chatterbox-server/server/messages.json');
-    readMessages.setEncoding('utf8');
-    var allData = '';
-    readMessages.on('data', function(chunk) {
-      allData += chunk;
-    });
-    
 
-    readMessages.on('end', function() {
-      var writeStream = fs.createWriteStream('/Users/student/2015-10-chatterbox-server/server/messages.json');
-      writeStream.end(allData.slice(0, allData.length-2) + ',' + receivedMessage + "]}");
-      writeStream.on('finish', function () {
-        utils.sendResponse(response, '{"objectID":0}', 201)
+
+      // read messages from messages.json
+
+      var messagesStream = fs.createReadStream('/Users/student/2015-10-chatterbox-server/server/messages.json');
+      messagesStream.setEncoding('utf8');
+      var allData = '';
+      messagesStream.on('data', function(chunk) {
+        allData += chunk;
+      });
+      messagesStream.on('end', function() {
+
+        // add objectID to message
+        var newID = JSON.parse(allData).results.length;
+        var jsonReceivedMessage = JSON.parse(receivedMessage);
+        jsonReceivedMessage.objectID = newID;
+
+        // write messages to messages.json
+
+        var writeStream = fs.createWriteStream('/Users/student/2015-10-chatterbox-server/server/messages.json');
+        writeStream.end(allData.slice(0, allData.length-2) + ',' + JSON.stringify(jsonReceivedMessage) + "]}");
+        writeStream.on('finish', function () {
+          utils.sendResponse(response, '', 201);
+        });
       });
     });
   }
 
   var optionsHandler = function () {
     utils.sendResponse(response, '', 200);
-    console.log('test');
   }
 
   var methodHandler = {
