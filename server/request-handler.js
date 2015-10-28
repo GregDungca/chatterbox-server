@@ -6,7 +6,7 @@ var requestHandler = function(request, response) {
   console.log("Serving request type " + request.method + " for url " + request.url);
 
   var getHandler = function () {
-    var messages = fs.createReadStream('/Users/student/2015-10-chatterbox-server/server/messages.json');
+    var messages = fs.createReadStream('./messages.json');
     messages.setEncoding('utf8');
     var messageData = '';
     messages.on('data', function(chunk) {
@@ -25,7 +25,7 @@ var requestHandler = function(request, response) {
 
       // read messages from messages.json
 
-      var messagesStream = fs.createReadStream('/Users/student/2015-10-chatterbox-server/server/messages.json');
+      var messagesStream = fs.createReadStream('./messages.json');
       messagesStream.setEncoding('utf8');
       var allData = '';
       messagesStream.on('data', function(chunk) {
@@ -40,7 +40,7 @@ var requestHandler = function(request, response) {
 
         // write messages to messages.json
 
-        var writeStream = fs.createWriteStream('/Users/student/2015-10-chatterbox-server/server/messages.json');
+        var writeStream = fs.createWriteStream('./messages.json');
         writeStream.end(allData.slice(0, allData.length-2) + ',' + JSON.stringify(jsonReceivedMessage) + "]}");
         writeStream.on('finish', function () {
           utils.sendResponse(response, '{"success":1}', 201);
