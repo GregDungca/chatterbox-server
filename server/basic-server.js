@@ -2,7 +2,7 @@ var http = require("http");
 var handler = require("./request-handler");
 var url = require('url');
 var utils = require('./utils')
-var fs = require('fs');
+var fs = require('fs'); // may remove
 
 var port = 3000;
 
@@ -16,24 +16,22 @@ var paths = [
   '/classes/messages'
 ];  
 
-var server = http.createServer(function(req,res) {
-  console.log(url.parse(req.url).pathname);
-  if ( url.parse(req.url).pathname === '/' ) {
-    console.log('empty');
-    // read file from index.html and submit within the response body
-      // let's try piping
-    var readClientStream = fs.createReadStream('../client/index.html')
-    readClientStream.setEncoding('utf8');
-    var contents = '';
-    readClientStream.on('data', function(chunk) {
-      contents += chunk;
-    });
-    readClientStream.on('end', function() {
-      res.writeHead(200);
-      res.end(contents);
-    });
+var filePaths = [
+  '/styles/styles.css',
+  '/bower_components/jquery/dist/jquery.js',
+  '/env/config.js',
+  '/scripts/app.js',
+  '/images/spiffygif_46x46.gif'
+]
 
-  } else if ( paths.indexOf(url.parse(req.url).pathname) !== -1 ) {
+var server = http.createServer(function(req,res) {
+  console.log("Serving request type " + req.method + " for url " + req.url);
+  var pathName = url.parse(req.url).pathname;
+  if ( pathName === '/' ) {
+    utils.serveFile(res, pathName);
+  } else if (filePaths.indexOf(pathName) !== -1 ) {
+    utils.serveFile(res, pathName);
+  } else if ( paths.indexOf(pathName) !== -1 ) {
     handler.requestHandler(req,res);
   } else {
     utils.sendResponse(res, 'This path does not exist', 404);

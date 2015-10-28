@@ -1,3 +1,5 @@
+var fs = require('fs');
+
 // These headers will allow Cross-Origin Resource Sharing (CORS).
 // This code allows this server to talk to websites that
 // are on different domains, for instance, your chat client.
@@ -32,6 +34,31 @@ var getData = function(request, callback) {
   })
 }
 
+var serveFile = function(response, filePath) {
+  filePath = filePath === '/' ? '../client/index.html' : ('../client' + filePath);
+
+  var readClientStream = fs.createReadStream(filePath);
+  readClientStream.setEncoding('utf8');
+  var contents = '';
+  readClientStream.on('data', function(chunk) {
+    contents += chunk;
+  });
+  readClientStream.on('end', function() {
+    if ( filePath === '../client/styles/styles.css' ) { //should make this less 'hacky'
+      headers = {
+        "Content-Type": "text/css"
+      }
+      response.writeHead(200, headers);
+    }
+    else {
+      response.writeHead(200);
+    }
+    response.end(contents);
+  });
+}
+
+
 exports.sendResponse = sendResponse;
 exports.headers = headers;
 exports.getData = getData;
+exports.serveFile = serveFile;
